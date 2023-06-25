@@ -9,7 +9,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	app := sona.New().SetAddr("0.0.0.0:8080").Setup(ctx)
+	app := sona.New().EnableSSE(ctx, "0.0.0.0:8080").EnableWS(ctx, "0.0.0.0:8081")
 
 	go func() {
 		ticker := time.NewTicker(time.Second)
