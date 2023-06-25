@@ -1,6 +1,7 @@
 package listmap
 
 import (
+	"log"
 	"sync"
 	"sync/atomic"
 )
@@ -47,7 +48,14 @@ func (l *ListMap) Remove(key string) {
 func (l *ListMap) Iterate(data []byte) {
 	for i := 0; i < len(l.list); i++ {
 		if value := l.list[i].Load(); value != nil {
-			(*value)(data)
+			func() {
+				defer func() {
+					if err := recover(); err != nil {
+						log.Println(err)
+					}
+				}()
+				(*value)(data)
+			}()
 		}
 	}
 }
