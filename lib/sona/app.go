@@ -70,10 +70,14 @@ func (s *Sona) Setup(ctx context.Context) *Sona {
 
 		value, _ := s.connMap.GetOrInsert(path, listmap.New())
 		writeErrorOccurred := make(chan struct{}, 1)
-		value.Append(path, func(data []byte) {
+		value.Append(r.RemoteAddr, func(data []byte) {
+			defer func() {
+				if err := recover(); err != nil {
+					writeErrorOccurred <- struct{}{}
+				}
+			}()
 			data = append(data, '\n')
 			if _, err := w.Write(data); err != nil {
-				writeErrorOccurred <- struct{}{}
 				return
 			}
 			flusher.Flush()
