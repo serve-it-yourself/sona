@@ -12,6 +12,15 @@ func (s *Sona) EnableSSE(ctx context.Context, addr string) *Sona {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if s.onConnect != nil {
+			s.onConnect(w, r)
+		}
+		defer func() {
+			if s.onDisconnect != nil {
+				s.onDisconnect(w, r)
+			}
+		}()
+
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
@@ -34,6 +43,9 @@ func (s *Sona) EnableSSE(ctx context.Context, addr string) *Sona {
 					writeErrorOccurred <- struct{}{}
 				}
 			}()
+			if s.onSend != nil {
+				s.onSend(w, r)
+			}
 			data = append(data, '\n')
 			if _, err := w.Write(data); err != nil {
 				return

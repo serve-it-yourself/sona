@@ -14,6 +14,15 @@ func (s *Sona) EnableWS(ctx context.Context, addr string) *Sona {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if s.onConnect != nil {
+			s.onConnect(w, r)
+		}
+		defer func() {
+			if s.onDisconnect != nil {
+				s.onDisconnect(w, r)
+			}
+		}()
+
 		conn, _, _, err := ws.UpgradeHTTP(r, w)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -29,6 +38,9 @@ func (s *Sona) EnableWS(ctx context.Context, addr string) *Sona {
 			defer func() {
 				_ = recover()
 			}()
+			if s.onSend != nil {
+				s.onSend(w, r)
+			}
 			if err := wsutil.WriteServerBinary(conn, data); err != nil {
 				errorOccurred <- struct{}{}
 				close(errorOccurred)

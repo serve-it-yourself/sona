@@ -13,10 +13,15 @@ type Sona struct {
 		certFile string
 		keyFile  string
 	}
+
 	connMap    *hashmap.Map[string, *listmap.ListMap]
 	sseServer  *http.Server
 	wsServer   *http.Server
 	tcpHandler func(data []byte)
+
+	onConnect    func(w http.ResponseWriter, r *http.Request)
+	onSend       func(w http.ResponseWriter, r *http.Request)
+	onDisconnect func(w http.ResponseWriter, r *http.Request)
 }
 
 func New() *Sona {
